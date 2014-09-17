@@ -1,0 +1,4 @@
+node_modules/
+*.wadl
+config.js
+config_cosafinity.js
