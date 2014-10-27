@@ -1,10 +1,11 @@
-var https = require('https');
 var q =require('q');
 var config = require('./config.js');
 var fs = require('fs');
 var mkpath = require('mkpath');
 var xml2js = require('xml2js');
 var AdmZip = require('adm-zip');
+
+var httpobj = (config.scheme == "https") ? require('https') : require('http');
 
 var authheader = 'Basic ' + new Buffer(config.user + ':' + config.pass).toString('base64') ;
 exports.listProxies = function(org){
@@ -26,7 +27,7 @@ exports.download = function(org,api,revision){
 	var path = '/' + config.version + '/o/' + org +'/apis/' + api + '/revisions/' + revision + '?format=bundle';
 	var options = {
 		  hostname: config.host,
-		  port: 443,
+		  port: config.port,
 		  path: path,
 		  method: 'GET',
 		  headers : { 
@@ -34,9 +35,9 @@ exports.download = function(org,api,revision){
 		  				'Accept' : 'application/json'
 		  			 }
 		};
-	console.log('Making request to ' + path);	
+	console.log('Making request to ' + config.host + ":" + config.port + path);
 	
-	var req = https.request(options, function (res){
+	var req = httpobj.request(options, function (res){
 		console.log('response received');
 		res.on('data',function(d){
 			try{
@@ -163,7 +164,7 @@ exports.getPolicies = function(org,api){
 function makeRequest (path,dp){
 	var options = {
 		  hostname: config.host,
-		  port: 443,
+		  port: config.port,
 		  path: path,
 		  method: 'GET',
 		  headers : { 
@@ -171,9 +172,9 @@ function makeRequest (path,dp){
 		  			  	'Accept' : 'application/json' 
 		  			 }
 		};
-	console.log('Making request to ' + path);	
+	console.log('Making request to ' + config.host + ":" + config.port + path);
 	var data = '';
-	var req = https.request(options, function (res){
+	var req = httpobj.request(options, function (res){
 		res.on('data',function(d){
 			data+=d.toString();
 		});

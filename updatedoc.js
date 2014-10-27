@@ -1,4 +1,3 @@
-var https = require('https');
 var config = require('./config.js');
 var testlocal = require('./testlocal.js');
 var authheader = 'Basic ' + new Buffer(config.user + ':' + config.pass).toString('base64') ;
@@ -9,9 +8,13 @@ var org = config.org;
 var product = config.apiproduct ;
 var model =  config.apimodel;
 
+var httpobj = (config.scheme == "https") ? require('https') : require('http');
+
 var dp = q.defer();
+
 //Fetch API Product
-makeRequest('https://api.enterprise.apigee.com/v1/o/' + org+'/apiproducts/' + product,dp,'GET');
+
+makeRequest('/v1/o/' + org+'/apiproducts/' + product,dp,'GET');
 dp.promise.then(buildModel);
 
 
@@ -36,27 +39,23 @@ function updateModel(){
 			dpmodel.promise.then(function(){
 			console.log('all done');
 		});
-		});
-		
-		
-	
+	});
 }
 
 function makeRequest (path,dp,method,body){
 	var options = {
-		  hostname: 'api.enterprise.apigee.com',
-		  port: 443,
+		  hostname: config.host,
+		  port: config.port,
 		  path: path,
 		  method: method,
 		  headers : { 
 		  				'Authorization' : authheader ,
 		  			  	'Accept' : 'application/json' ,
-		  			  	
 		  			 }
 		};
-	console.log('Making request to ' + path);	
+	console.log('Making request to ' + config.host + ":" + config.port + path);
 	var data = '';
-	var req = https.request(options, function (res){
+	var req = httpobj.request(options, function (res){
 		console.log(res.statusCode);
 		res.on('data',function(d){
 			data+=d.toString();
@@ -82,8 +81,8 @@ function makeRequest (path,dp,method,body){
 
 function makeRequest1 (path,dp,method,body){
 	var options = {
-		  hostname: 'api.enterprise.apigee.com',
-		  port: 443,
+		  hostname: config.host,
+		  port: config.port,
 		  path: path,
 		  method: method,
 		  headers : { 
@@ -92,9 +91,9 @@ function makeRequest1 (path,dp,method,body){
 		  			  	'Content-Type' : 'application/xml'
 		  			 }
 		};
-	console.log('Making request to ' + path);	
+	console.log('Making request to ' + config.host + ":" + config.port + path);
 	var data = '';
-	var req = https.request(options, function (res){
+	var req = httpobj.request(options, function (res){
 		console.log(res.statusCode);
 		res.on('data',function(d){
 			data+=d.toString();
