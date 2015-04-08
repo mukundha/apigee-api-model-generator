@@ -7,13 +7,12 @@ var xmlbuilder = require('xmlbuilder');
 var app = xmlbuilder.create('application');
 
 
-
 exports.startLoading = function(){
 	var promise = proxy.listProxies(org);
 	promise
-	.then(function(ctx){	
+	.then(function(ctx){
 		var dp = q.defer();
-		getLatestRevisions(ctx,dp);	
+		getLatestRevisions(ctx,dp);
 		return dp.promise ;
 	})
 	.then (function(ctx){
@@ -24,7 +23,7 @@ exports.startLoading = function(){
 }
 exports.loadProxies = function(proxies){
 	var dp = q.defer();
-	getLatestRevisions({message:proxies},dp);	
+	getLatestRevisions({message:proxies},dp);
 	return dp.promise ;
 }
 //exports.startLoading();
@@ -45,7 +44,7 @@ resources.att('base', config.baseurl);
 
 function getLatestRevisions(oldctx,odp){
 	if ( !oldctx.index)
-		oldctx.index=0;	
+		oldctx.index=0;
 	var p = proxy.getRevisions (org,oldctx.message[oldctx.index]);
 	p.then (function(ctx){
 		console.log(ctx);
@@ -57,10 +56,10 @@ function getLatestRevisions(oldctx,odp){
 			else{
 				odp.resolve({message: 'All Revisions Loaded'});
 				app.end({ pretty: true});
-				console.log(app.toString());	
+				console.log(app.toString());
 				fs.writeFile(org + '.wadl' , app.toString(), function(err){
 					if(err) console.log('writing to wadl failed');
-				});		
+				});
 			}
 		});
 		download ( oldctx.message[oldctx.index], ctx.message[ctx.message.length-1],dp);
@@ -77,7 +76,7 @@ function download (api, rev, dp){
 		policyDp.promise.then(function(){
 			getProxyEndpoints (api,dp);
 		});
-		loadPolicies(api,policyDp);		
+		loadPolicies(api,policyDp);
 	});
 }
 
@@ -92,8 +91,8 @@ exports.loadProxy = function(o,api){
 	policyDp.promise.then(function(){
 		getProxyEndpoints (api, proxyDp);
 	});
-	loadPolicies(api,policyDp);	
-	return proxyDp.promise;	
+	loadPolicies(api,policyDp);
+	return proxyDp.promise;
 }
 
 //exports.loadProxy('mukundha1','weather');
@@ -101,24 +100,24 @@ exports.loadProxy = function(o,api){
 function getProxyEndpoints (api, dp){
 	var p = proxy.getProxyEndpoints(org,api);
 	p.then (function(ctx){
-		
+
 		var proxyEndpointDp = q.defer();
 		var proxyEndpoints = ctx.message ;
 		//console.log(proxyEndpoints);
 		getProxyEndpoint (0,api,proxyEndpoints,proxyEndpointDp);
-		
+
 		//All Proxy Endpoints Loaded
 		proxyEndpointDp.promise.then(function(){
 			console.log(tests.length);
 			//saveentity.save(tests);
 			dp.resolve(ctx);
 		});
-		
+
 	});
 }
 
 function getProxyEndpoint (index,api,proxyEndpoints,dp){
-	
+
 	var p = proxy.getProxyEndpoint (org,api,proxyEndpoints[index]);
 	p.then(function(ctx){
 		try{
@@ -135,12 +134,12 @@ function getProxyEndpoint (index,api,proxyEndpoints,dp){
 }
 
 
-function listPoliciesForFlows (proxyEndpoint,api){	
+function listPoliciesForFlows (proxyEndpoint,api){
 	console.log('list policies for flow');
 	var basepath = proxyEndpoint.HTTPProxyConnection.BasePath;
 	var str = JSON.stringify(proxyEndpoint);
 	loadParam(api,str);
-	
+
 	var query = [] ;
 	var header = [] ;
 	if ( policyParams[api] ){
@@ -165,16 +164,16 @@ function listPoliciesForFlows (proxyEndpoint,api){
 		if ( proxyEndpoint.PostFlow.Response && proxyEndpoint.PostFlow.Response.Step)
 			steps = steps.concat (proxyEndpoint.PostFlow.Response.Step);
 
-	
+
 	verb = "GET";
 	if ( proxyEndpoint.Flows.Flow.length == 0 ){
 		//only one resource for this proxyendpoint
 		var resource = resources.ele('resource' , {path: basepath});
-		
+
 		var methodElement = resource.ele('method', {name: verb , 'apigee:displayName':api}) ;
 
 		methodElement.ele('apigee:tags').ele('apigee:tag',{primary:true},api);
-		
+
 		if ( verb == 'POST' || verb == 'PUT')
 		{
 			var reqElement = methodElement.ele('request');
@@ -189,7 +188,7 @@ function listPoliciesForFlows (proxyEndpoint,api){
 			resource.ele('param' , {name: header[k] , style:'header'} );
 		}
 		for(var j = 0 ; j < steps.length ; j ++ ){
-			
+
 			if ( policyParams[steps[j].Name] ){
 				var par = policyParams[steps[j].Name];
 				for( var k=0;k<par.length;k++){
@@ -221,10 +220,10 @@ function listPoliciesForFlows (proxyEndpoint,api){
 		if ( flow.Request && flow.Request.Step)
 			steps = steps.concat (flow.Request.Step);
 		if ( flow.Response && flow.Response.Step)
-			steps = steps.concat (flow.Response.Step);		
-		
+			steps = steps.concat (flow.Response.Step);
+
 		for(var j = 0 ; j < steps.length ; j ++ ){
-			
+
 			if ( policyParams[steps[j].Name] ){
 				var par = policyParams[steps[j].Name];
 				for( var k=0;k<par.length;k++){
@@ -266,8 +265,8 @@ function listPoliciesForFlows (proxyEndpoint,api){
 				var par = '${param' + w + '}';
 				finalPath += splits[w] + par;
 				wadlFinalPath += splits[w] + '{param' + w + '}';
-				pathParams.push('param' + w);			
-			}	
+				pathParams.push('param' + w);
+			}
 			finalPath += splits[splits.length-1] ;
 			wadlFinalPath += splits[splits.length-1] ;
 		}
@@ -276,7 +275,7 @@ function listPoliciesForFlows (proxyEndpoint,api){
 		var methodElement = resource.ele('method', {name: verb , 'apigee:displayName':flowName}) ;
 
 		methodElement.ele('apigee:tags').ele('apigee:tag',{primary:true},api);
-		
+
 		if ( verb == 'POST' || verb == 'PUT')
 		{
 			var reqElement = methodElement.ele('request');
@@ -290,11 +289,11 @@ function listPoliciesForFlows (proxyEndpoint,api){
 			resource.ele('param' , {name: flowHeader[k] , style:'header'} );
 		}
 		for(var k=0;k<pathParams.length;k++){
-			resource.ele('param' , {name: pathParams[k] , style:'template'} );	
+			resource.ele('param' , {name: pathParams[k] , style:'template'} );
 		}
 
 		addTest(org,api,flowName,org + '-test.apigee.net',80,finalPath,config.scheme,verb,flowQuery,pathParams,flowHeader);
-		
+
 		//jmeter.generateJmx(jmx);
 		//apib.generateApibModel(jmx);
 	}
@@ -329,41 +328,75 @@ function loadParam (policyName,str) {
 	var check = ['request.queryparam.' , 'request.header.'];
 
 	try{
-	for(var i =0; i <check.length; i ++ )
-	{
-		var tempIndex = 0;
-		while( str.indexOf(check[i],tempIndex)>=0) {
-			var temp=str.indexOf(check[i],tempIndex);
+		for(var i =0; i <check.length; i ++ )
+		{
+			var tempIndex = 0;
+			while( str.indexOf(check[i],tempIndex)>=0) {
+				var temp=str.indexOf(check[i],tempIndex);
 
-			var delimiters = [' ', '=' , ')' , '>' ,'<' ,'}' , '%' ,':','"',"'"];
-			var indexes = [] ;
-			for(var j=0;j<delimiters.length;j++){
-				indexes[j]=str.indexOf(delimiters[j],temp);
-			}			
-			indexes.sort(function(a,b){return a-b;});
-			var c=0;
-			do{
-				f=indexes[c];
-				c++;
-			}while(f<0) ;
-			
-			
-			var queryParam = str.substring(temp, f);
+				var delimiters = [' ', '=' , ')' , '>' ,'<' ,'}' , '%' ,':','"',"'"];
+				var indexes = [] ;
+				for(var j=0;j<delimiters.length;j++){
+					indexes[j]=str.indexOf(delimiters[j],temp);
+				}
+				indexes.sort(function(a,b){return a-b;});
+				var c=0;
+				do{
+					f=indexes[c];
+					c++;
+				}while(f<0) ;
 
-			if ( !policyParams[policyName]){
-				policyParams[policyName]=[];
+
+				var queryParam = str.substring(temp, f);
+
+				if ( !policyParams[policyName]){
+					policyParams[policyName]=[];
+				}
+
+				if ( policyParams[policyName].indexOf(queryParam) < 0){
+					policyParams[policyName].push(queryParam);
+				}
+				tempIndex=temp+1;
 			}
-
-			if ( policyParams[policyName].indexOf(queryParam) < 0){
-				policyParams[policyName].push(queryParam);
-			}
-			tempIndex=temp+1;
 		}
-	}
+
+
+		var policyJson = JSON.parse(str)
+
+		//Read Query and Header from Extract Variables Policy
+		if(policyJson.QueryParam){
+
+			for(i=0;i<policyJson.QueryParam.length;i++){
+				var p = policyJson.QueryParam[i];
+				var pname = 'request.queryparam.' + p.$.name
+				if ( !policyParams[policyName]){
+					policyParams[policyName]=[];
+				}
+
+				if ( policyParams[policyName].indexOf(pname) < 0){
+					policyParams[policyName].push(pname);
+				}
+			}
+		}
+
+		if(policyJson.Header){
+
+			for(i=0;i<policyJson.Header.length;i++){
+				var p = policyJson.Header[i];
+				var pname = 'request.header.' + p.$.name
+				if ( !policyParams[policyName]){
+					policyParams[policyName]=[];
+				}
+
+				if ( policyParams[policyName].indexOf(pname) < 0){
+					policyParams[policyName].push(pname);
+				}
+			}
+		}
 	}catch(err){
 		console.log(err);
 	}
-	
+
 }
 
 
