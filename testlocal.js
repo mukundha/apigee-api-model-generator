@@ -215,17 +215,19 @@ function listPoliciesForFlows (proxyEndpoint,api){
 		flowHeader = flowHeader.concat(header);
 
 		//This is one resource
+		var flowSteps = [] ;
+		flowSteps = flowSteps.concat(steps);
 		var flow = proxyEndpoint.Flows.Flow[i];
 		var flowName = flow.$.name;
 		if ( flow.Request && flow.Request.Step)
-			steps = steps.concat (flow.Request.Step);
+		flowSteps = flowSteps.concat (flow.Request.Step);
 		if ( flow.Response && flow.Response.Step)
-			steps = steps.concat (flow.Response.Step);
+		flowSteps = flowSteps.concat (flow.Response.Step);
 
-		for(var j = 0 ; j < steps.length ; j ++ ){
+		for(var j = 0 ; j < flowSteps.length ; j ++ ){
 
-			if ( policyParams[steps[j].Name] ){
-				var par = policyParams[steps[j].Name];
+			if ( policyParams[flowSteps[j].Name] ){
+				var par = policyParams[flowSteps[j].Name];
 				for( var k=0;k<par.length;k++){
 					var val = par[k].split('.')[2] ;
 					if ( par[k].indexOf('queryparam') >0 && flowQuery.indexOf(val) <0 ) {
